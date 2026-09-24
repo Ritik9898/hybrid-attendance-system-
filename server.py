@@ -21,7 +21,6 @@ def home():
     """
     return render_template("index.html")
 
-
 @server.route("/api/attendance")
 def attendance():
     """
@@ -44,6 +43,16 @@ def attendance():
         })
 
     return jsonify(data)
+
+
+@server.route("/api/student")
+def student():
+    return jsonify({
+        "name": "Ritik",
+        "course": "BTech CSE",
+        "status": "Active"
+    })
+
 
 
 if __name__ == "__main__":
