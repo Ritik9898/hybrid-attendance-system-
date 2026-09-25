@@ -1,47 +1,97 @@
 import cv2
 import os
+import sys
+import re
 
-from detector import detect_faces
+from app.face.detector import detect_faces
 
 
+# --------------------------------------------------
 # Get project root directory
+# --------------------------------------------------
+
 PROJECT_ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), "../..")
 )
 
 
-# Folder where registered face images will be saved
+# --------------------------------------------------
+# Get student name
+# --------------------------------------------------
+
+if len(sys.argv) < 2:
+    print("ERROR: Student name is required.")
+    print("Example:")
+    print("python -m app.face.register \"Test Student\"")
+    sys.exit(1)
+
+student_name = sys.argv[1].strip()
+
+
+# --------------------------------------------------
+# Create safe folder name
+# --------------------------------------------------
+
+folder_name = re.sub(
+    r"[^a-zA-Z0-9_-]+",
+    "_",
+    student_name
+).strip("_").lower()
+
+
+if not folder_name:
+    print("ERROR: Invalid student name.")
+    sys.exit(1)
+
+
+# --------------------------------------------------
+# Face storage folder
+# --------------------------------------------------
+
 SAVE_FOLDER = os.path.join(
     PROJECT_ROOT,
     "data",
     "faces",
-    "ritik"
+    folder_name
+)
+
+os.makedirs(
+    SAVE_FOLDER,
+    exist_ok=True
 )
 
 
-# Create folder if it doesn't exist
-os.makedirs(SAVE_FOLDER, exist_ok=True)
-
-
+# --------------------------------------------------
 # Open webcam
+# --------------------------------------------------
+
 camera = cv2.VideoCapture(0)
 
 if not camera.isOpened():
     print("ERROR: Camera could not be opened.")
-    exit()
+    sys.exit(1)
 
 
+print("----------------------------------------")
 print("Face Registration Started")
+print("----------------------------------------")
+print(f"Student: {student_name}")
+print(f"Folder: {SAVE_FOLDER}")
 print("Look at the camera.")
 print("Press Q to quit.")
+print("----------------------------------------")
+
 
 image_count = 0
 max_images = 20
 
 
+# --------------------------------------------------
+# Capture face images
+# --------------------------------------------------
+
 while image_count < max_images:
 
-    # Capture frame
     success, frame = camera.read()
 
     if not success:
@@ -91,7 +141,7 @@ while image_count < max_images:
 
         image_count += 1
 
-        # Draw rectangle around face
+        # Draw rectangle
         cv2.rectangle(
             frame,
             (x, y),
@@ -100,7 +150,7 @@ while image_count < max_images:
             2
         )
 
-        # Show capture count
+        # Capture count
         cv2.putText(
             frame,
             f"Captured: {image_count}/{max_images}",
@@ -134,14 +184,22 @@ while image_count < max_images:
         break
 
 
+# --------------------------------------------------
 # Release camera
+# --------------------------------------------------
+
 camera.release()
 
-# Close camera window
 cv2.destroyAllWindows()
 
 
+# --------------------------------------------------
+# Final message
+# --------------------------------------------------
+
+print("----------------------------------------")
 print("Registration completed.")
-print(
-    f"{image_count} face images saved in {SAVE_FOLDER}"
-)
+print(f"Student: {student_name}")
+print(f"Images captured: {image_count}")
+print(f"Saved in: {SAVE_FOLDER}")
+print("----------------------------------------")
